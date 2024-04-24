@@ -5,8 +5,7 @@ class ViewController: UIViewController {
     //Outlet
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var amountTextField: UITextField!
-    //Actions
-    @IBAction func donateButtonTapped(_ sender: UIButton) {}
+    
      //Properties
         var transactions: [Transaction] = []
         
@@ -25,6 +24,17 @@ class ViewController: UIViewController {
             }
         }
         //metheds
+    @IBAction func donateButtonTapped(_ sender: UIButton) {
+        guard let email = emailTextField.text, !email.isEmpty,
+              let amountText = amountTextField.text, let amount = Double(amountText) else {
+            print("Invalid input.")
+            return
+        }
+
+        let newTransaction = Transaction(id: UUID().uuidString, email: email, amount: amount, date: Date())
+        saveTransaction(transaction: newTransaction)
+    }
+
         func saveTransaction() {
             let newTransaction = Transaction(id: UUID().uuidString, email: "example@example.com", amount: 99.99, date: Date())
             FirestoreService.shared.saveTransaction(transaction: newTransaction) { success in

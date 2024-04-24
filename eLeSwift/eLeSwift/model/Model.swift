@@ -1,8 +1,9 @@
-//
-//  Model.swift
-//  eLeSwift
-//
-//  Created by Mañanas on 16/4/24.
-//
 
 import Foundation
+
+struct Transaction {
+    var id: String
+    var email: String
+    var amount: Double
+    var date: Date
+}
