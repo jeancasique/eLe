@@ -11,7 +11,7 @@ struct LoginView: View {
     @State private var isUserLoggedIn = false
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack {
                     emailField
@@ -22,12 +22,13 @@ struct LoginView: View {
                 .padding()
                 .navigationTitle("Iniciar Sesión")
                 .navigationBarTitleDisplayMode(.inline)
-                .background(
-                    NavigationLink(destination: PerfilView(), isActive: $isUserLoggedIn) {
-                        EmptyView()
-                    }
-                )
+                .navigationDestination(isPresented: $isUserLoggedIn) {
+                    PerfilView()
+                }
             }
+        }
+        .navigationDestination(isPresented: $isUserLoggedIn) {
+            PerfilView()
         }
     }
 
