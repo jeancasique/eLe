@@ -1,8 +1,7 @@
 import SwiftUI
-import Firebase
+import FirebaseCore
 import FirebaseAuth
-import FirebaseFirestore
-import FirebaseStorage
+import GoogleSignIn
 
 struct LoginView: View {
     @State private var email = ""
@@ -75,20 +74,70 @@ struct LoginView: View {
     }
 
     private var actionButtons: some View {
-        HStack(spacing: 60) {
-            Button("Iniciar Sesión") {
-                validateFields()
-            }
-            .padding()
-            .foregroundColor(.white)
-            .background(Color.blue)
-            .cornerRadius(8)
-
-            NavigationLink("Registro", destination: RegistrationView())
+        VStack {
+            HStack(spacing: 60) {
+                Button("Iniciar Sesión") {
+                    validateFields()
+                }
                 .padding()
                 .foregroundColor(.white)
-                .background(Color.green)
+                .background(Color.blue)
                 .cornerRadius(8)
+
+                NavigationLink("Registro", destination: RegistrationView())
+                    .padding()
+                    .foregroundColor(.white)
+                    .background(Color.green)
+                    .cornerRadius(8)
+            }
+            .padding()
+
+            NavigationLink(destination: PasswordResetView()) {
+                Text("¿Olvidaste tu contraseña?")
+                    .foregroundColor(.blue)
+            }
+            
+            Button(action: {
+                guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+                let config = GIDConfiguration(clientID: clientID)
+
+                GIDSignIn.sharedInstance.configuration = config
+                
+                let viewController: UIViewController = (UIApplication.shared.windows.first?.rootViewController!)!
+                
+                GIDSignIn.sharedInstance.signIn(withPresenting: viewController) { signResult, error in
+                    if let error = error {
+                        print(error)
+                        return
+                    }
+                    
+                    guard let user = signResult?.user,
+                          let idToken = user.idToken else { return }
+                    
+                    let accessToken = user.accessToken
+                    
+                    let credential = GoogleAuthProvider.credential(withIDToken: idToken.tokenString, accessToken: accessToken.tokenString)
+
+                    // Use the credential to authenticate with Firebase
+                    Auth.auth().signIn(with: credential) { authResult, error in
+                        isUserLoggedIn = true
+                    }
+                }
+            }) {
+                HStack {
+                    Image("logo_google")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
+                    
+                    Text("Iniciar sesión con Google")
+                }
+                .foregroundColor(.red)
+                .padding()
+                .background(Color.white)
+                .cornerRadius(8)
+            }
+            
         }
         .padding()
     }

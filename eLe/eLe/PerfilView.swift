@@ -228,9 +228,6 @@ struct PerfilView: View {
         }
     }
 
-    func downloadProfileImage(userId: String, profileImageURL: String) {
-        // Esta función no es necesaria para la carga de la imagen en base64
-    }
 }
 
 struct PerfilView_Previews: PreviewProvider {

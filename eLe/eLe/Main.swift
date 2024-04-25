@@ -1,5 +1,9 @@
 import SwiftUI
+import GoogleSignIn
 import Firebase
+import UIKit
+
+
 
 @main
 struct MyApp: App {
@@ -8,7 +12,7 @@ struct MyApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup() {
             LoginView()
         }
     }
