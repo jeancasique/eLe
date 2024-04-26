@@ -121,6 +121,11 @@ struct LoginView: View {
 
                     // Use the credential to authenticate with Firebase
                     Auth.auth().signIn(with: credential) { authResult, error in
+                        if let error = error {
+                            print("Error durante el inicio de sesión con Google: \(error.localizedDescription)")
+                            return
+                        }
+                        
                         guard let user = Auth.auth().currentUser else {
                             print("Error: No se pudo obtener el usuario actual.")
                             return
@@ -129,8 +134,10 @@ struct LoginView: View {
                         let userData: [String: Any] = [
                             "email": user.email ?? "",
                             "firstName": user.displayName?.components(separatedBy: " ").first ?? "",
-                            "lastName": user.displayName?.components(separatedBy: " ").last ?? ""
-                            // Añade otros campos como fecha de nacimiento, sexo, etc., según sea necesario
+                            "lastName": user.displayName?.components(separatedBy: " ").last ?? "",
+                            "gender": "", // Placeholder for gender
+                            "birthDate": "", // Placeholder for birth date
+                            // Add other fields as needed
                         ]
                         
                         let db = Firestore.firestore()

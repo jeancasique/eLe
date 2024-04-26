@@ -186,7 +186,6 @@ struct PerfilView: View {
                 // El usuario existe en Firestore, cargar datos de Firestore
                 let data = document.data()
                 self.userData.email = data?["email"] as? String ?? ""
-                // Solo sobrescribir los datos si están disponibles y no son vacíos
                 if let firstName = data?["firstName"] as? String, !firstName.isEmpty {
                     self.userData.firstName = firstName
                 }
@@ -203,31 +202,36 @@ struct PerfilView: View {
                    let imageData = Data(base64Encoded: base64String),
                    let image = UIImage(data: imageData) {
                     self.userData.profileImage = image
-                    print("firestore")
                 }
             } else {
-                // El usuario no existe en Firestore, cargar datos de Google
+                // El usuario no existe en Firestore, cargar datos de Google si están disponibles
                 if let googleData = GIDSignIn.sharedInstance.currentUser?.profile {
-                    self.userData.email = googleData.email ?? ""
-                    self.userData.firstName = googleData.givenName ?? ""
-                    self.userData.lastName = googleData.familyName ?? ""
-                    // Obtener foto de perfil de Google
-                    if let url = googleData.imageURL(withDimension: 200) {
+                    if self.userData.email.isEmpty {
+                        self.userData.email = googleData.email ?? ""
+                    }
+                    if self.userData.firstName.isEmpty {
+                        self.userData.firstName = googleData.givenName ?? ""
+                    }
+                    if self.userData.lastName.isEmpty {
+                        self.userData.lastName = googleData.familyName ?? ""
+                    }
+                    if self.userData.gender.isEmpty {
+                        // Asignar un valor predeterminado para el género si no está disponible en Google
+                        self.userData.gender = "Género desconocido"
+                    }
+                    // Obtener foto de perfil de Google solo si no hay una imagen de perfil en Firestore
+                    if self.userData.profileImage == nil, let url = googleData.imageURL(withDimension: 200) {
                         URLSession.shared.dataTask(with: url) { data, response, error in
                             guard let data = data, error == nil else { return }
                             DispatchQueue.main.async {
                                 self.userData.profileImage = UIImage(data: data)
-                                print("Google")
                             }
                         }.resume()
                     }
-                } else {
-                    print("El documento no existe y no hay datos de Google disponibles.")
                 }
             }
         }
     }
-
     
     func saveProfileImage(userId: String, image: UIImage) {
         DispatchQueue.global().async {
