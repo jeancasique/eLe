@@ -116,10 +116,10 @@ struct LoginView: View {
                         return
                     }
                     
-                    guard let user = signResult?.user,
-                          let idToken = user.idToken else { return }
+                    guard let googleUser = signResult?.user,
+                          let idToken = googleUser.idToken else { return }
                     
-                    let accessToken = user.accessToken
+                    let accessToken = googleUser.accessToken
                     
                     let credential = GoogleAuthProvider.credential(withIDToken: idToken.tokenString, accessToken: accessToken.tokenString)
 
@@ -135,22 +135,36 @@ struct LoginView: View {
                             return
                         }
                         
-                        let userData: [String: Any] = [
-                            "email": user.email ?? "",
-                            "firstName": user.displayName?.components(separatedBy: " ").first ?? "",
-                            "lastName": user.displayName?.components(separatedBy: " ").last ?? "",
-                            "gender": "", // Placeholder for gender
-                            "birthDate": "", // Placeholder for birth date
-                            // Add other fields as needed
-                        ]
-                        
                         let db = Firestore.firestore()
-                        db.collection("users").document(user.uid).setData(userData, merge: true) { error in
-                            if let error = error {
-                                print("Error guardando los datos del usuario: \(error.localizedDescription)")
-                            } else {
-                                print("Datos del usuario guardados correctamente.")
-                                isUserLoggedIn = true
+                        let docRef = db.collection("users").document(user.uid)
+                        Task {
+                            do {
+                                let document = try await docRef.getDocument()
+                                if !document.exists {
+                                    
+                                    let userData: [String: Any] = [
+                                        "email": user.email ?? "",
+                                        "firstName": user.displayName?.components(separatedBy: " ").first ?? "",
+                                        "lastName": user.displayName?.components(separatedBy: " ").last ?? "",
+                                        "gender": "", // Placeholder for gender
+                                        "birthDate": "", // Placeholder for birth date
+                                        // Add other fields as needed
+                                        "profileImage": googleUser.profile!.hasImage ? googleUser.profile!.imageURL(withDimension: 200)?.absoluteString : ""
+                                    ]
+                                    
+                                    db.collection("users").document(user.uid).setData(userData) { error in
+                                        if let error = error {
+                                            print("Error guardando los datos del usuario: \(error.localizedDescription)")
+                                        } else {
+                                            print("Datos del usuario guardados correctamente.")
+                                            isUserLoggedIn = true
+                                        }
+                                    }
+                                } else {
+                                    isUserLoggedIn = true
+                                }
+                            } catch {
+                                print(error)
                             }
                         }
                     }
