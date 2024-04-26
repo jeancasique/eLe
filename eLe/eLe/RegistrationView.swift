@@ -156,6 +156,10 @@ struct RegistrationView: View {
             formErrors[field] = errorMessage
             return
         }
+        
+        if password != confirmPassword {
+            formErrors["matchPassword"] = "No coinciden las contraseñas"
+        }
 
         if let validation = validation, !validation(value) {
             formErrors[field] = errorMessage
