@@ -156,13 +156,17 @@ struct PerfilView: View {
 
     func saveData() {
         guard let userId = Auth.auth().currentUser?.uid else { return }
+        if let profileImage = userData.profileImage {
+            saveProfileImage(userId: userId, image: profileImage)
+        }
+
         let db = Firestore.firestore()
         let userData = [
             "email": self.userData.email,
             "firstName": self.userData.firstName,
             "lastName": self.userData.lastName,
             "birthDate": DateFormatter.iso8601Full.string(from: self.userData.birthDate),
-            "gender": self.userData.gender
+            "gender": self.userData.gender,
         ]
         db.collection("users").document(userId).setData(userData) { error in
             if let error = error {
@@ -173,19 +177,36 @@ struct PerfilView: View {
                 self.alertMessage = "Datos guardados correctamente"
             }
         }
-        
-        // Guardar imagen
-        if let profileImage = self.userData.profileImage {
-            saveProfileImage(userId: userId, image: profileImage)
-        }
     }
     func loadUserData() {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         let db = Firestore.firestore()
         db.collection("users").document(userId).getDocument { document, error in
             if let document = document, document.exists {
+                // El usuario existe en Firestore, cargar datos de Firestore
                 let data = document.data()
-                
+                self.userData.email = data?["email"] as? String ?? ""
+                // Solo sobrescribir los datos si están disponibles y no son vacíos
+                if let firstName = data?["firstName"] as? String, !firstName.isEmpty {
+                    self.userData.firstName = firstName
+                }
+                if let lastName = data?["lastName"] as? String, !lastName.isEmpty {
+                    self.userData.lastName = lastName
+                }
+                if let gender = data?["gender"] as? String, !gender.isEmpty {
+                    self.userData.gender = gender
+                }
+                if let birthDateTimestamp = data?["birthDate"] as? Timestamp {
+                    self.userData.birthDate = birthDateTimestamp.dateValue()
+                }
+                if let base64String = data?["profileImage"] as? String,
+                   let imageData = Data(base64Encoded: base64String),
+                   let image = UIImage(data: imageData) {
+                    self.userData.profileImage = image
+                    print("firestore")
+                }
+            } else {
+                // El usuario no existe en Firestore, cargar datos de Google
                 if let googleData = GIDSignIn.sharedInstance.currentUser?.profile {
                     self.userData.email = googleData.email ?? ""
                     self.userData.firstName = googleData.givenName ?? ""
@@ -196,27 +217,17 @@ struct PerfilView: View {
                             guard let data = data, error == nil else { return }
                             DispatchQueue.main.async {
                                 self.userData.profileImage = UIImage(data: data)
+                                print("Google")
                             }
                         }.resume()
                     }
                 } else {
-                    self.userData.email = data?["email"] as? String ?? ""
-                    self.userData.firstName = data?["firstName"] as? String ?? ""
-                    self.userData.lastName = data?["lastName"] as? String ?? ""
-                    self.userData.gender = data?["gender"] as? String ?? ""
-                    self.userData.birthDate = (data?["birthDate"] as? Timestamp)?.dateValue() ?? Date()
+                    print("El documento no existe y no hay datos de Google disponibles.")
                 }
-
-                if let base64String = data?["profileImage"] as? String,
-                   let imageData = Data(base64Encoded: base64String),
-                   let image = UIImage(data: imageData) {
-                    self.userData.profileImage = image
-                }
-            } else {
-                print("El documento no existe.")
             }
         }
     }
+
     
     func saveProfileImage(userId: String, image: UIImage) {
         DispatchQueue.global().async {
