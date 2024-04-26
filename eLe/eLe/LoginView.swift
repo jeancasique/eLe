@@ -2,6 +2,7 @@ import SwiftUI
 import FirebaseCore
 import FirebaseAuth
 import GoogleSignIn
+import FirebaseFirestore
 
 struct LoginView: View {
     @State private var email = ""
@@ -120,7 +121,27 @@ struct LoginView: View {
 
                     // Use the credential to authenticate with Firebase
                     Auth.auth().signIn(with: credential) { authResult, error in
-                        isUserLoggedIn = true
+                        guard let user = Auth.auth().currentUser else {
+                            print("Error: No se pudo obtener el usuario actual.")
+                            return
+                        }
+                        
+                        let userData: [String: Any] = [
+                            "email": user.email ?? "",
+                            "firstName": user.displayName?.components(separatedBy: " ").first ?? "",
+                            "lastName": user.displayName?.components(separatedBy: " ").last ?? ""
+                            // Añade otros campos como fecha de nacimiento, sexo, etc., según sea necesario
+                        ]
+                        
+                        let db = Firestore.firestore()
+                        db.collection("users").document(user.uid).setData(userData, merge: true) { error in
+                            if let error = error {
+                                print("Error guardando los datos del usuario: \(error.localizedDescription)")
+                            } else {
+                                print("Datos del usuario guardados correctamente.")
+                                isUserLoggedIn = true
+                            }
+                        }
                     }
                 }
             }) {

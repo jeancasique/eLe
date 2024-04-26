@@ -3,6 +3,7 @@ import Firebase
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage
+import GoogleSignIn
 
 class UserData: ObservableObject {
     @Published var email: String = ""
@@ -178,35 +179,45 @@ struct PerfilView: View {
             saveProfileImage(userId: userId, image: profileImage)
         }
     }
-
     func loadUserData() {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         let db = Firestore.firestore()
         db.collection("users").document(userId).getDocument { document, error in
             if let document = document, document.exists {
                 let data = document.data()
-                self.userData.email = data?["email"] as? String ?? "" // Cargar el correo electrónico del usuario
-                self.userData.firstName = data?["firstName"] as? String ?? ""
-                self.userData.lastName = data?["lastName"] as? String ?? ""
-                self.userData.gender = data?["gender"] as? String ?? ""
-
-                if let birthDateString = data?["birthDate"] as? String,
-                   let date = DateFormatter.iso8601Full.date(from: birthDateString) {
-                    self.userData.birthDate = date
+                
+                if let googleData = GIDSignIn.sharedInstance.currentUser?.profile {
+                    self.userData.email = googleData.email ?? ""
+                    self.userData.firstName = googleData.givenName ?? ""
+                    self.userData.lastName = googleData.familyName ?? ""
+                    // Obtener foto de perfil de Google
+                    if let url = googleData.imageURL(withDimension: 200) {
+                        URLSession.shared.dataTask(with: url) { data, response, error in
+                            guard let data = data, error == nil else { return }
+                            DispatchQueue.main.async {
+                                self.userData.profileImage = UIImage(data: data)
+                            }
+                        }.resume()
+                    }
+                } else {
+                    self.userData.email = data?["email"] as? String ?? ""
+                    self.userData.firstName = data?["firstName"] as? String ?? ""
+                    self.userData.lastName = data?["lastName"] as? String ?? ""
+                    self.userData.gender = data?["gender"] as? String ?? ""
+                    self.userData.birthDate = (data?["birthDate"] as? Timestamp)?.dateValue() ?? Date()
                 }
 
-                // Cargar la imagen de perfil desde Firestore
                 if let base64String = data?["profileImage"] as? String,
                    let imageData = Data(base64Encoded: base64String),
                    let image = UIImage(data: imageData) {
                     self.userData.profileImage = image
                 }
             } else {
-                print("Document does not exist")
+                print("El documento no existe.")
             }
         }
     }
-
+    
     func saveProfileImage(userId: String, image: UIImage) {
         DispatchQueue.global().async {
             // Redimensionar la imagen para reducir su tamaño antes de comprimirla
