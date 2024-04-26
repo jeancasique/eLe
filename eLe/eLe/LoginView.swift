@@ -99,7 +99,10 @@ struct LoginView: View {
             }
             
             Button(action: {
-                guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+                guard let clientID = FirebaseApp.app()?.options.clientID else {
+                    print("Google login fail")
+                    return
+                }
                 let config = GIDConfiguration(clientID: clientID)
 
                 GIDSignIn.sharedInstance.configuration = config
