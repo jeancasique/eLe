@@ -11,13 +11,13 @@ struct PasswordResetView: View {
         VStack {
             TextField("Correo Electrónico", text: $email)
                 .padding()
-                .autocapitalization(.none)
-                .keyboardType(.emailAddress)
-                .disableAutocorrection(true)
-                .border(Color(UIColor.separator))
+                .autocapitalization(.none) // evita que todo este en mayuscula
+                .keyboardType(.emailAddress) // hace que el teclado muestre el @ y el .com
+                .disableAutocorrection(true)// elimina el autocorrector
+                .border(Color(UIColor.separator)) // le da borde por sistema
                 .padding(.horizontal, 8)
                 .padding(.vertical, 20)
-                .onChange(of: email, perform: validateEmail)
+                .onChange(of: email, perform: validateEmail) // si hay algun cambio en el email aplica el metodo validateEmail
 
             if !isEmailValid {
                 Text("Correo electrónico no válido")

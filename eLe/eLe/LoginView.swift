@@ -5,56 +5,66 @@ import GoogleSignIn
 import FirebaseFirestore
 
 struct LoginView: View {
+    // Estados para almacenar el correo electrónico y contraseña ingresados por el usuario
     @State private var email = ""
     @State private var password = ""
+    // Estados para manejar errores de validación de correo electrónico y contraseña
     @State private var emailError = ""
     @State private var passwordError = ""
+    // Estado para controlar si el usuario está logueado
     @State private var isUserLoggedIn = false
 
     var body: some View {
+        // Navegación y presentación de la vista principal
         NavigationStack {
             ScrollView {
                 VStack {
-                    emailField
-                    passwordField
-                    actionButtons
-                    Spacer()
+                    emailField // Vista para el campo de correo electrónico
+                    passwordField // Vista para el campo de contraseña
+                    actionButtons // Vista para los botones de acción
+                    Spacer() // Espaciador para empujar todo hacia arriba
                 }
-                .padding()
-                .navigationTitle("Iniciar Sesión")
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationDestination(isPresented: $isUserLoggedIn) {
-                    PerfilView()
+                .padding() // Padding general para el VStack
+                .navigationTitle("Iniciar Sesión") // Título de la barra de navegación
+                .navigationBarTitleDisplayMode(.inline) // Estilo del título
+                .navigationDestination(isPresented: $isUserLoggedIn) { // Destino de navegación cuando el usuario está logueado
+                    PerfilView() // Vista de perfil del usuario
                 }
             }
         }
         .navigationDestination(isPresented: $isUserLoggedIn) {
-            PerfilView()
+            PerfilView() // Otra vista de navegación para el perfil
         }
     }
 
+    // Definición de la vista para el campo de correo electrónico
     private var emailField: some View {
         VStack(alignment: .leading) {
             TextField("Correo Electrónico", text: $email)
                 .padding()
-                .autocapitalization(.none)
-                .keyboardType(.emailAddress)
-                .disableAutocorrection(true)
-                .border(Color(UIColor.separator))
+                .autocapitalization(.none) // No autocapitalización
+                .keyboardType(.emailAddress) // Tipo de teclado para correos
+                .disableAutocorrection(true) // Deshabilitar autocorrección
+                .border(Color(UIColor.separator)) // Borde del campo de texto
                 .padding(.horizontal, 8)
                 .padding(.vertical, 20)
-                .onChange(of: email, perform: validateEmail)
-                .submitLabel(.next)
+                .onChange(of: email, perform: validateEmail) // reactivamente verifica lo que se escribre en email y aplica el metodo validateEmail para saber si es correcto el formato email
+                .submitLabel(.next) // este metodo hace que el teclado tenga un bopton siguiente para pasar al siguiente campo interactuable con teclado
 
+            
             if !emailError.isEmpty {
+                // Si 'emailError' no está vacío, se ejecuta el código dentro del bloque.
+                
+                // El componente 'Text' muestra el mensaje de error contenido en 'emailError'.
                 Text(emailError)
-                    .foregroundColor(.red)
-                    .font(.caption)
-                    .padding([.horizontal, .top], 4)
+                    .foregroundColor(.red) // Establece el color del texto a rojo para destacar el error.
+                    .font(.caption) // Utiliza el estilo de fuente 'caption', que es más pequeño y menos prominente.
+                    .padding([.horizontal, .top], 4) // Añade un relleno horizontal y en la parte superior de 4 puntos para separar visualmente el mensaje de error de otros elementos.
             }
         }
     }
 
+    // Definición de la vista para el campo de contraseña
     private var passwordField: some View {
         VStack(alignment: .leading) {
             SecureField("Contraseña", text: $password)
@@ -62,9 +72,9 @@ struct LoginView: View {
                 .border(Color(UIColor.separator))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 20)
-                .onChange(of: password, perform: validatePassword)
-                .submitLabel(.done)
-                .onSubmit(validateFields)
+                .onChange(of: password, perform: validatePassword) // reactivamente verifica lo que se escribre en email y aplica el metodo validateEmail para saber si es correcto el formato email
+                .submitLabel(.done) // este metodo hace que el teclado tenga un bopton siguiente para pasar al siguiente campo interactuable con teclado
+                .onSubmit(validateFields) // Acción al enviar el formulario
 
             if !passwordError.isEmpty {
                 Text(passwordError)
@@ -75,18 +85,19 @@ struct LoginView: View {
         }
     }
 
+    // Definición de la vista para los botones de acción
     private var actionButtons: some View {
         VStack {
             HStack(spacing: 60) {
                 Button("Iniciar Sesión") {
-                    validateFields()
+                    validateFields() // Validar campos al intentar iniciar sesión
                 }
                 .padding()
                 .foregroundColor(.white)
                 .background(Color.blue)
                 .cornerRadius(8)
 
-                NavigationLink("Registro", destination: RegistrationView())
+                NavigationLink("Registro", destination: RegistrationView()) // Enlace a la vista de registro
                     .padding()
                     .foregroundColor(.white)
                     .background(Color.green)
@@ -94,74 +105,103 @@ struct LoginView: View {
             }
             .padding()
 
-            NavigationLink(destination: PasswordResetView()) {
+            NavigationLink(destination: PasswordResetView()) { // Enlace a la vista de restablecimiento de contraseña
                 Text("¿Olvidaste tu contraseña?")
                     .foregroundColor(.blue)
             }
             
             Button(action: {
+                // Verifica si existe un 'clientID' para la configuración de Firebase. Si no existe, se imprime un mensaje de error y se detiene la ejecución.
                 guard let clientID = FirebaseApp.app()?.options.clientID else {
-                    print("Google login fail")
+                    print("Fallo al iniciar sesión con Google")
                     return
                 }
-                let config = GIDConfiguration(clientID: clientID)
 
+                // Configura el inicio de sesión de Google con el 'clientID' obtenido de Firebase.
+                let config = GIDConfiguration(clientID: clientID)
                 GIDSignIn.sharedInstance.configuration = config
                 
+                // Obtiene el controlador de vista raíz para presentar la pantalla de inicio de sesión de Google.
                 let viewController: UIViewController = (UIApplication.shared.windows.first?.rootViewController!)!
                 
+                // Inicia el proceso de autenticación de Google.
                 GIDSignIn.sharedInstance.signIn(withPresenting: viewController) { signResult, error in
+                    // Verifica si ocurrió un error durante el intento de inicio de sesión.
                     if let error = error {
                         print(error)
                         return
                     }
                     
+                    // Comprueba que se haya obtenido un usuario de Google y su token de identificación.
                     guard let googleUser = signResult?.user,
                           let idToken = googleUser.idToken else { return }
                     
+                    // Obtiene el token de acceso de Google.
                     let accessToken = googleUser.accessToken
                     
+                    // Crea las credenciales para Firebase utilizando el token de Google.
                     let credential = GoogleAuthProvider.credential(withIDToken: idToken.tokenString, accessToken: accessToken.tokenString)
 
-                    // Use the credential to authenticate with Firebase
+                    // Utiliza las credenciales para autenticar al usuario en Firebase.
                     Auth.auth().signIn(with: credential) { authResult, error in
+                        // Maneja posibles errores durante el inicio de sesión en Firebase.
                         if let error = error {
                             print("Error durante el inicio de sesión con Google: \(error.localizedDescription)")
                             return
                         }
                         
+                        // Verifica que el usuario de Firebase se haya obtenido correctamente.
                         guard let user = Auth.auth().currentUser else {
                             print("Error: No se pudo obtener el usuario actual.")
                             return
                         }
                         
+                        // Accede a Firestore para verificar o guardar datos del usuario.
                         let db = Firestore.firestore()
                         let docRef = db.collection("users").document(user.uid)
                         Task {
                             do {
+                                // Intenta obtener el documento del usuario en Firestore.
                                 let document = try await docRef.getDocument()
                                 if !document.exists {
+                                    // Si el usuario es nuevo, prepara la descarga y almacenamiento de la imagen de perfil.
+                                    let imageUrl = googleUser.profile!.imageURL(withDimension: 200)?.absoluteString ?? ""
                                     
-                                    let userData: [String: Any] = [
-                                        "email": user.email ?? "",
-                                        "firstName": user.displayName?.components(separatedBy: " ").first ?? "",
-                                        "lastName": user.displayName?.components(separatedBy: " ").last ?? "",
-                                        "gender": "", // Placeholder for gender
-                                        "birthDate": "", // Placeholder for birth date
-                                        // Add other fields as needed
-                                        "profileImage": googleUser.profile!.hasImage ? googleUser.profile!.imageURL(withDimension: 200)?.absoluteString : ""
-                                    ]
-                                    
-                                    db.collection("users").document(user.uid).setData(userData) { error in
-                                        if let error = error {
-                                            print("Error guardando los datos del usuario: \(error.localizedDescription)")
-                                        } else {
-                                            print("Datos del usuario guardados correctamente.")
-                                            isUserLoggedIn = true
-                                        }
+                                    if let imageUrl = URL(string: imageUrl), googleUser.profile!.hasImage {
+                                        // Descarga la imagen de perfil desde la URL de Google.
+                                        URLSession.shared.dataTask(with: imageUrl) { data, response, error in
+                                            guard let data = data, error == nil else {
+                                                print("Fallo al descargar los datos de la imagen")
+                                                return
+                                            }
+                                            let image = UIImage(data: data)
+                                            // Prepara los datos del usuario para guardar en Firestore, incluyendo la imagen en formato Base64.
+                                            let userData: [String: Any] = [
+                                                "email": user.email ?? "",
+                                                "firstName": user.displayName?.components(separatedBy: " ").first ?? "",
+                                                "lastName": user.displayName?.components(separatedBy: " ").last ?? "",
+                                                "gender": "", // Espacio reservado para el género
+                                                "birthDate": "", // Espacio reservado para la fecha de nacimiento
+                                                "profileImage": image?.jpegData(compressionQuality: 0.8)?.base64EncodedString() ?? ""
+                                            ]
+                                            
+                                            // Guarda los datos del usuario en Firestore.
+                                            db.collection("users").document(user.uid).setData(userData) { error in
+                                                if let error = error {
+                                                    print("Error al guardar los datos del usuario: \(error.localizedDescription)")
+                                                } else {
+                                                    print("Datos del usuario guardados correctamente.")
+                                                    DispatchQueue.main.async {
+                                                        self.isUserLoggedIn = true
+                                                    }
+                                                }
+                                            }
+                                        }.resume()
                                     }
                                 } else {
-                                    isUserLoggedIn = true
+                                    DispatchQueue.main.async {
+                                        self.isUserLoggedIn = true
+                                    }
                                 }
                             } catch {
                                 print(error)
@@ -171,24 +211,27 @@ struct LoginView: View {
                 }
             }) {
                 HStack {
+                    // Imagen del logo de Google en el botón.
                     Image("logo_google")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 20, height: 20)
                     
-                    Text("Iniciar sesión con Google")
+                    // Texto en el botón que indica la acción a realizar.
+                    Text("Inicia sesión con Google")
                 }
-                .foregroundColor(.red)
-                .padding()
-                .background(Color.white)
-                .cornerRadius(8)
+                .foregroundColor(.red) // Color del texto en rojo.
+                .padding() // Agrega un relleno alrededor del texto e imagen para mejor apariencia.
+                .background(Color.white) // Color de fondo del botón.
+                .cornerRadius(8) // Bordes redondeados del botón.
             }
-            
+
         }
         .padding()
     }
 
     private func validateFields() {
+        // Valida que no haya errores en el correo electrónico y la contraseña para permitir el inicio de sesión
         if emailError.isEmpty && passwordError.isEmpty {
             Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
                 if let error = error {
@@ -203,6 +246,7 @@ struct LoginView: View {
     }
 
     private func validateEmail(_ email: String) {
+        // Valida que el correo electrónico no esté vacío y cumpla con un formato adecuado
         if email.isEmpty {
             emailError = "El correo electrónico es obligatorio."
         } else if !isValidEmail(email) {
@@ -213,6 +257,7 @@ struct LoginView: View {
     }
 
     private func validatePassword(_ password: String) {
+        // Valida que la contraseña no esté vacía y cumpla con requisitos mínimos de seguridad
         if password.isEmpty {
             passwordError = "La contraseña es obligatoria."
         } else if !isValidPassword(password) {
@@ -223,12 +268,14 @@ struct LoginView: View {
     }
 
     func isValidEmail(_ email: String) -> Bool {
+        // Utiliza una expresión regular para validar el formato del correo electrónico
         let emailFormat = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailFormat)
         return emailPredicate.evaluate(with: email)
     }
 
     func isValidPassword(_ password: String) -> Bool {
+        // Utiliza una expresión regular para validar el formato de la contraseña
         let passwordFormat = "^(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]{5,}$"
         let passwordPredicate = NSPredicate(format: "SELF MATCHES %@", passwordFormat)
         return passwordPredicate.evaluate(with: password)
