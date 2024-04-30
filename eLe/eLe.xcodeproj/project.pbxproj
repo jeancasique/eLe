@@ -19,7 +19,6 @@
 		6CAE34472BD8F61B00FB5CCF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CAE34462BD8F61B00FB5CCF /* LoginView.swift */; };
 		6CAE34492BD8F62D00FB5CCF /* RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CAE34482BD8F62D00FB5CCF /* RegistrationView.swift */; };
 		6CAE344B2BD8F63800FB5CCF /* PerfilView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CAE344A2BD8F63800FB5CCF /* PerfilView.swift */; };
-		6CAE344D2BD8F63D00FB5CCF /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CAE344C2BD8F63D00FB5CCF /* ImagePicker.swift */; };
 		6CAE34502BD8F6C500FB5CCF /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 6CAE344F2BD8F6C500FB5CCF /* FirebaseAnalytics */; };
 		6CAE34522BD8F6C500FB5CCF /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6CAE34512BD8F6C500FB5CCF /* FirebaseAuth */; };
 		6CAE34542BD8F6C500FB5CCF /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 6CAE34532BD8F6C500FB5CCF /* FirebaseAuthCombine-Community */; };
@@ -69,7 +68,6 @@
 		6CAE34462BD8F61B00FB5CCF /* LoginView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		6CAE34482BD8F62D00FB5CCF /* RegistrationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegistrationView.swift; sourceTree = "<group>"; };
 		6CAE344A2BD8F63800FB5CCF /* PerfilView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PerfilView.swift; sourceTree = "<group>"; };
-		6CAE344C2BD8F63D00FB5CCF /* ImagePicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		6CAE34652BD900D800FB5CCF /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
 		6CB99AD72BDA4F96004F488E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6CB99ADA2BDA5CBA004F488E /* PasswordResetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordResetView.swift; sourceTree = "<group>"; };
@@ -141,7 +139,6 @@
 				6CAE34482BD8F62D00FB5CCF /* RegistrationView.swift */,
 				6CB99ADA2BDA5CBA004F488E /* PasswordResetView.swift */,
 				6CAE344A2BD8F63800FB5CCF /* PerfilView.swift */,
-				6CAE344C2BD8F63D00FB5CCF /* ImagePicker.swift */,
 				6CAE34652BD900D800FB5CCF /* Main.swift */,
 				6CAE34192BD8F5AD00FB5CCF /* ContentView.swift */,
 				6CAE341B2BD8F5AD00FB5CCF /* Assets.xcassets */,
@@ -333,7 +330,6 @@
 				6CAE341A2BD8F5AD00FB5CCF /* ContentView.swift in Sources */,
 				6CAE34242BD8F5AD00FB5CCF /* eLe.xcdatamodeld in Sources */,
 				6CAE34492BD8F62D00FB5CCF /* RegistrationView.swift in Sources */,
-				6CAE344D2BD8F63D00FB5CCF /* ImagePicker.swift in Sources */,
 				6CAE34472BD8F61B00FB5CCF /* LoginView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
