@@ -114,19 +114,23 @@ struct RegistrationView: View {
                 .cornerRadius(8)
             }
             .navigationTitle("Registro")
-            .alert(isPresented: $showAlert) {
-                Alert(
-                    title: Text("Registro"),
-                    message: Text(alertMessage),
-                    dismissButton: .default(Text("OK"), action: {
-                        if shouldNavigateToLogin {
-                            self.shouldNavigateToLogin = true
-                        }
-                    })
-                )
-            }
-        }
-    }
+                       .alert(isPresented: $showAlert) {
+                           Alert(
+                               title: Text("Registro"),
+                               message: Text(alertMessage),
+                               dismissButton: .default(Text("OK"), action: {
+                                   if shouldNavigateToLogin {
+                                       self.shouldNavigateToLogin = true
+                                   }
+                               })
+                           )
+                       }
+                       .background(
+                           NavigationLink(destination: LoginView(), isActive: $shouldNavigateToLogin) { EmptyView() }
+                       )
+                   }
+               }
+
 
     // Comprueba si todos los campos están llenos y correctos
     private var allFieldsFilled: Bool {
