@@ -212,6 +212,10 @@ struct RegistrationView: View {
                 alertMessage = "Registro exitoso. Por favor inicia sesión con tus nuevas credenciales."
                 showAlert = true
                 shouldNavigateToLogin = true
+                
+                // Guardar el correo electrónico y la contraseña en el llavero seguro
+                            KeychainService.saveEmail(email)
+                            KeychainService.savePassword(password)
             }
         }
     }
@@ -240,6 +244,7 @@ struct RegistrationView: View {
         return passwordPredicate.evaluate(with: password)
     }
 }
+
 
 struct RegistrationView_Previews: PreviewProvider {
     static var previews: some View {
