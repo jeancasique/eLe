@@ -24,6 +24,7 @@ struct PerfilView: View {
     @State private var showImagePicker = false     // Controla la visibilidad del selector de imagen
     @State private var showAlert = false           // Controla la visibilidad de la alerta
     @State private var alertMessage = ""           // Mensaje para la alerta
+    @State private var sourceType: UIImagePickerController.SourceType?
     
     var body: some View {
         NavigationView {
@@ -34,7 +35,7 @@ struct PerfilView: View {
                         .font(.title) // Establece el tamaño de la fuente como título
                         .fontWeight(.bold) // Hace que la fuente sea negrita
                         .padding(.top, 10) // Añade un espacio superior de 10 puntos
-                    
+                      
                     // Llama a la sección que muestra y maneja la imagen de perfil
                     profileImageSection
                     
@@ -73,47 +74,67 @@ struct PerfilView: View {
                 .padding() // Añade relleno alrededor del VStack
             }
             .onAppear(perform: loadUserData) // Carga los datos del usuario al aparecer la vista
-            .sheet(isPresented: $showImagePicker) { // Muestra un selector de imágenes cuando es necesario
+            .sheet(isPresented: $showImagePicker) {
                 ImagePicker(image: $userData.profileImage)
             }
-            .alert(isPresented: $showAlert) { // Muestra una alerta cuando se guarda la información
-                Alert(
-                    title: Text("Datos Guardados"),
-                    message: Text(alertMessage),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
-        }
-    }
+
+                        .alert(isPresented: $showAlert) { // Muestra una alerta cuando se guarda la información
+                            Alert(
+                                title: Text("Datos Guardados"),
+                                message: Text(alertMessage),
+                                dismissButton: .default(Text("OK"))
+                            )
+                        }
+                    }
+                }
+                
     
     // Sección que muestra y gestiona la imagen de perfil
     var profileImageSection: some View {
-        ZStack {
-            Circle()
-                .fill(Color.gray.opacity(0.5))
-                .frame(width: 140, height: 140)
-                .shadow(radius: 10)
-            
-            if let image = userData.profileImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .clipShape(Circle())
-                    .frame(width: 130, height: 130)
-            } else {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 130, height: 130)
-                    .clipShape(Circle())
-                    .foregroundColor(.white)
-            }
-        }
-        .onTapGesture {
-            self.showImagePicker = true // Activa el selector de imágenes al tocar
-        }
-        .padding(.bottom, 20)
-    }
+           ZStack {
+               Circle()
+                   .fill(Color.gray.opacity(0.5))
+                   .frame(width: 140, height: 140)
+                   .shadow(radius: 10)
+               
+               if let image = userData.profileImage {
+                   Image(uiImage: image)
+                       .resizable()
+                       .scaledToFill()
+                       .clipShape(Circle())
+                       .frame(width: 130, height: 130)
+               } else {
+                   Image(systemName: "person.circle.fill")
+                       .resizable()
+                       .scaledToFit()
+                       .frame(width: 130, height: 130)
+                       .clipShape(Circle())
+                       .foregroundColor(.white)
+               }
+           }
+           .onTapGesture {
+               self.showImagePicker = true // Activa el selector de imágenes al tocar
+               self.sourceType = nil // Resetea la fuente de la imagen
+           }
+           .contextMenu {
+               Button(action: {
+                   self.showImagePicker = true
+                   self.sourceType = .photoLibrary
+               }) {
+                   Text("Abrir Galería")
+                   Image(systemName: "photo.on.rectangle")
+               }
+               Button(action: {
+                   self.showImagePicker = true
+                   self.sourceType = .camera
+               }) {
+                   Text("Tomar Foto")
+                   Image(systemName: "camera")
+               }
+           }
+           .padding(.bottom, 20)
+       }
+    
     
     // Función para generar campos de usuario editables
     func userInfoField(label: String, value: Binding<String>, editing: Binding<String?>, fieldKey: String, editable: Bool) -> some View {
@@ -264,9 +285,18 @@ struct PerfilView: View {
                     self.userData.lastName = data?["lastName"] as? String ?? ""
                     self.userData.gender = data?["gender"] as? String ?? ""
                     
-                    // Convierte la fecha de nacimiento del formato Timestamp a Date
-                    if let birthDateTimestamp = data?["birthDate"] as? Timestamp {
-                        self.userData.birthDate = birthDateTimestamp.dateValue()
+                    // Verifica si hay una fecha de nacimiento en el documento
+                    if let birthDate = data?["birthDate"] as? String {
+                        // Si hay una fecha de nacimiento, intenta convertirla a un objeto Date
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd"
+                        if let date = dateFormatter.date(from: birthDate) {
+                            self.userData.birthDate = date
+                        } else {
+                            print("Error: No se pudo convertir la fecha de nacimiento a Date")
+                        }
+                    } else {
+                        print("Advertencia: No se encontró la fecha de nacimiento en el documento")
                     }
                     
                     // Si hay una URL de imagen de perfil en Firestore, la asigna al usuario
@@ -286,6 +316,7 @@ struct PerfilView: View {
             }
         }
     }
+
     func loadUserDataFromApple() {
         // Verifica si ya hay una imagen de perfil almacenada en Firestore
         if userData.profileImage == nil {

@@ -20,7 +20,7 @@ struct PasswordResetView: View {
                Text("Se enviará un correo electrónico para restablecer tu contraseña.")
                    .font(.caption)
                    .padding(.vertical, 8)
-
+                   
                TextField("Correo Electrónico", text: $email)
                    .padding()
                    .padding(.horizontal, 20) // Asegura espacio para el icono a la izquierda
@@ -104,5 +104,6 @@ struct PasswordResetView: View {
 struct PasswordResetView_Previews: PreviewProvider {
     static var previews: some View {
         PasswordResetView()
+        
     }
 }

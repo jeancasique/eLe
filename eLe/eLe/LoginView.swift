@@ -15,8 +15,9 @@ struct LoginView: View {
     @State private var passwordError = ""
     // Estado para controlar si el usuario está logueado
     @State private var isUserLoggedIn = false
-
+    
     var body: some View {
+        
         // Navegación y presentación de la vista principal
         NavigationStack {
             ScrollView {
@@ -26,16 +27,25 @@ struct LoginView: View {
                     actionButtons // Vista para los botones de acción
                     Spacer() // Espaciador para empujar todo hacia arriba
                 }
+                .foregroundColor(.primary)
                 .padding() // Padding general para el VStack
                 .navigationTitle("Iniciar Sesión") // Título de la barra de navegación
                 .navigationBarTitleDisplayMode(.inline) // Estilo del título
-                .navigationDestination(isPresented: $isUserLoggedIn) { // Destino de navegación cuando el usuario está logueado
-                    PerfilView() // Vista de perfil del usuario
-                }
+                
+                    .navigationDestination(isPresented: $isUserLoggedIn) { // Destino de navegación cuando el usuario está logueado
+                        PerfilView() // Vista de perfil del usuario
+                    }
+                  
             }
         }
     }
-
+    func isDarkMode() -> Bool {
+        if UIScreen.main.traitCollection.userInterfaceStyle == .dark {
+            return true
+        } else {
+            return false
+        }
+    }
     // Definición de la vista para el campo de correo electrónico
     private var emailField: some View {
         VStack(alignment: .leading) {
@@ -234,7 +244,7 @@ struct LoginView: View {
                     Image(systemName: "applelogo") // Agregar el sistema de símbolos de Apple
                     Text("Inicia Sesión con Apple")
                 }
-                .foregroundColor(.black)
+               
                 .padding()
             }
 
@@ -243,12 +253,12 @@ struct LoginView: View {
             }) {
                 HStack {
                     Image(systemName: "faceid") // Agrega el icono del Face ID
-                        .foregroundColor(.black)
+                       
                     Text("Inicia Sesión con Face ID") // Agrega el texto del botón
                 }
                 .padding()
             }
-            .foregroundColor(.black)
+           
         }
     }
 
@@ -393,6 +403,7 @@ struct LoginView: View {
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView()
+           
     }
 }
 
