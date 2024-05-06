@@ -118,135 +118,133 @@ struct LoginView: View {
                 Text("¿Olvidaste tu contraseña?")
                     .foregroundColor(.blue)
             }
-            
-            Button(action: {
-                          // Verifica si existe un 'clientID' para la configuración de Firebase. Si no existe, se imprime un mensaje de error y se detiene la ejecución.
-                          guard let clientID = FirebaseApp.app()?.options.clientID else {
-                              print("Fallo al iniciar sesión con Google")
-                              return
-                          }
+            HStack(spacing: 16) {
+                // Botón de inicio de sesión con Google
+                Button(action: {
+                    // Verifica si existe un 'clientID' para la configuración de Firebase. Si no existe, se imprime un mensaje de error y se detiene la ejecución.
+                    guard let clientID = FirebaseApp.app()?.options.clientID else {
+                        print("Fallo al iniciar sesión con Google")
+                        return
+                    }
 
-                          // Configura el inicio de sesión de Google con el 'clientID' obtenido de Firebase.
-                          let config = GIDConfiguration(clientID: clientID)
-                          GIDSignIn.sharedInstance.configuration = config
-                          
-                          // Obtiene el controlador de vista raíz para presentar la pantalla de inicio de sesión de Google.
-                          let viewController: UIViewController = (UIApplication.shared.windows.first?.rootViewController!)!
-                          
-                          // Inicia el proceso de autenticación de Google.
-                          GIDSignIn.sharedInstance.signIn(withPresenting: viewController) { signResult, error in
-                              // Verifica si ocurrió un error durante el intento de inicio de sesión.
-                              if let error = error {
-                                  print(error)
-                                  return
-                              }
-                              
-                              // Comprueba que se haya obtenido un usuario de Google y su token de identificación.
-                              guard let googleUser = signResult?.user,
-                                    let idToken = googleUser.idToken else { return }
-                              
-                              // Obtiene el token de acceso de Google.
-                              let accessToken = googleUser.accessToken
-                              
-                              // Crea las credenciales para Firebase utilizando el token de Google.
-                              let credential = GoogleAuthProvider.credential(withIDToken: idToken.tokenString, accessToken: accessToken.tokenString)
+                    // Configura el inicio de sesión de Google con el 'clientID' obtenido de Firebase.
+                    let config = GIDConfiguration(clientID: clientID)
+                    GIDSignIn.sharedInstance.configuration = config
 
-                              // Utiliza las credenciales para autenticar al usuario en Firebase.
-                              Auth.auth().signIn(with: credential) { authResult, error in
-                                  // Maneja posibles errores durante el inicio de sesión en Firebase.
-                                  if let error = error {
-                                      print("Error durante el inicio de sesión con Google: \(error.localizedDescription)")
-                                      return
-                                  }
-                                  
-                                  // Verifica que el usuario de Firebase se haya obtenido correctamente.
-                                  guard let user = Auth.auth().currentUser else {
-                                      print("Error: No se pudo obtener el usuario actual.")
-                                      return
-                                  }
-                                  
-                                  // Accede a Firestore para verificar o guardar datos del usuario.
-                                  let db = Firestore.firestore()
-                                  let docRef = db.collection("users").document(user.uid)
-                                  Task {
-                                      do {
-                                          // Intenta obtener el documento del usuario en Firestore.
-                                          let document = try await docRef.getDocument()
-                                          if !document.exists {
-                                              // Si el usuario es nuevo, prepara la descarga y almacenamiento de la imagen de perfil.
-                                              let imageUrl = googleUser.profile!.imageURL(withDimension: 200)?.absoluteString ?? ""
-                                              
-                                              if let imageUrl = URL(string: imageUrl), googleUser.profile!.hasImage {
-                                                  // Descarga la imagen de perfil desde la URL de Google.
-                                                  URLSession.shared.dataTask(with: imageUrl) { data, response, error in
-                                                      guard let data = data, error == nil else {
-                                                          print("Fallo al descargar los datos de la imagen")
-                                                          return
-                                                      }
-                                                      let image = UIImage(data: data)
-                                                      // Prepara los datos del usuario para guardar en Firestore, incluyendo la imagen en formato Base64.
-                                                      let userData: [String: Any] = [
-                                                          "email": user.email ?? "",
-                                                          "firstName": user.displayName?.components(separatedBy: " ").first ?? "",
-                                                          "lastName": user.displayName?.components(separatedBy: " ").last ?? "",
-                                                          "gender": "", // Espacio reservado para el género
-                                                          "birthDate": "", // Espacio reservado para la fecha de nacimiento
-                                                          "profileImage": image?.jpegData(compressionQuality: 0.8)?.base64EncodedString() ?? ""
-                                                      ]
-                                                      
-                                                      // Guarda los datos del usuario en Firestore.
-                                                      db.collection("users").document(user.uid).setData(userData) { error in
-                                                          if let error = error {
-                                                              print("Error al guardar los datos del usuario: \(error.localizedDescription)")
-                                                          } else {
-                                                              print("Datos del usuario guardados correctamente.")
-                                                              DispatchQueue.main.async {
-                                                                  self.isUserLoggedIn = true
-                                                              }
-                                                          }
-                                                      }
-                                                  }.resume()
-                                              }
-                                          } else {
-                                              DispatchQueue.main.async {
-                                                  self.isUserLoggedIn = true
-                                              }
-                                          }
-                                      } catch {
-                                          print(error)
-                                      }
-                                  }
-                              }
-                          }
-                      }) {
-                          HStack {
-                              // Imagen del logo de Google en el botón.
-                              Image("logo_google")
-                                  .resizable()
-                                  .aspectRatio(contentMode: .fit)
-                                  .frame(width: 20, height: 20)
-                              
-                              // Texto en el botón que indica la acción a realizar.
-                              Text("Inicia sesión con Google")
-                          }
-                          .foregroundColor(.red) // Color del texto en rojo.
-                          .padding() // Agrega un relleno alrededor del texto e imagen para mejor apariencia.
-                          .background(Color.white) // Color de fondo del botón.
-                          .cornerRadius(8) // Bordes redondeados del botón.
-                      }
-                      .padding()
-                  
+                    // Obtiene el controlador de vista raíz para presentar la pantalla de inicio de sesión de Google.
+                    let viewController: UIViewController = (UIApplication.shared.windows.first?.rootViewController!)!
 
-            Button(action: {
-                performAppleSignIn() // Iniciar proceso de registro con Apple
-            }) {
-                HStack {
-                    Image(systemName: "applelogo") // Agregar el sistema de símbolos de Apple
-                    Text("Inicia Sesión con Apple")
+                    // Inicia el proceso de autenticación de Google.
+                    GIDSignIn.sharedInstance.signIn(withPresenting: viewController) { signResult, error in
+                        // Verifica si ocurrió un error durante el intento de inicio de sesión.
+                        if let error = error {
+                            print(error)
+                            return
+                        }
+
+                        // Comprueba que se haya obtenido un usuario de Google y su token de identificación.
+                        guard let googleUser = signResult?.user,
+                              let idToken = googleUser.idToken else { return }
+
+                        // Obtiene el token de acceso de Google.
+                        let accessToken = googleUser.accessToken
+
+                        // Crea las credenciales para Firebase utilizando el token de Google.
+                        let credential = GoogleAuthProvider.credential(withIDToken: idToken.tokenString, accessToken: accessToken.tokenString)
+
+                        // Utiliza las credenciales para autenticar al usuario en Firebase.
+                        Auth.auth().signIn(with: credential) { authResult, error in
+                            // Maneja posibles errores durante el inicio de sesión en Firebase.
+                            if let error = error {
+                                print("Error durante el inicio de sesión con Google: \(error.localizedDescription)")
+                                return
+                            }
+
+                            // Verifica que el usuario de Firebase se haya obtenido correctamente.
+                            guard let user = Auth.auth().currentUser else {
+                                print("Error: No se pudo obtener el usuario actual.")
+                                return
+                            }
+
+                            // Accede a Firestore para verificar o guardar datos del usuario.
+                            let db = Firestore.firestore()
+                            let docRef = db.collection("users").document(user.uid)
+                            Task {
+                                do {
+                                    // Intenta obtener el documento del usuario en Firestore.
+                                    let document = try await docRef.getDocument()
+                                    if !document.exists {
+                                        // Si el usuario es nuevo, prepara la descarga y almacenamiento de la imagen de perfil.
+                                        let imageUrl = googleUser.profile!.imageURL(withDimension: 200)?.absoluteString ?? ""
+
+                                        if let imageUrl = URL(string: imageUrl), googleUser.profile!.hasImage {
+                                            // Descarga la imagen de perfil desde la URL de Google.
+                                            URLSession.shared.dataTask(with: imageUrl) { data, response, error in
+                                                guard let data = data, error == nil else {
+                                                    print("Fallo al descargar los datos de la imagen")
+                                                    return
+                                                }
+                                                let image = UIImage(data: data)
+                                                // Prepara los datos del usuario para guardar en Firestore, incluyendo la imagen en formato Base64.
+                                                let userData: [String: Any] = [
+                                                    "email": user.email ?? "",
+                                                    "firstName": user.displayName?.components(separatedBy: " ").first ?? "",
+                                                    "lastName": user.displayName?.components(separatedBy: " ").last ?? "",
+                                                    "gender": "", // Espacio reservado para el género
+                                                    "birthDate": "", // Espacio reservado para la fecha de nacimiento
+                                                    "profileImage": image?.jpegData(compressionQuality: 0.8)?.base64EncodedString() ?? ""
+                                                ]
+
+                                                // Guarda los datos del usuario en Firestore.
+                                                db.collection("users").document(user.uid).setData(userData) { error in
+                                                    if let error = error {
+                                                        print("Error al guardar los datos del usuario: \(error.localizedDescription)")
+                                                    } else {
+                                                        print("Datos del usuario guardados correctamente.")
+                                                        DispatchQueue.main.async {
+                                                            // Aquí puedes manejar el estado de inicio de sesión como desees
+                                                        }
+                                                    }
+                                                }
+                                            }.resume()
+                                        }
+                                    } else {
+                                        DispatchQueue.main.async {
+                                            // Aquí puedes manejar el estado de inicio de sesión como desees
+                                        }
+                                    }
+                                } catch {
+                                    print(error)
+                                }
+                            }
+                        }
+                    }
+                }) {
+                    Image("logo_google")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 40, height: 40) // Modificado el tamaño del logo
+                        .foregroundColor(.red) // Cambiado el color del logo
+                        .padding(8) // Añadido relleno alrededor del logo
+                        .background(Color.white) // Color de fondo del botón.
+                        .cornerRadius(8) // Bordes redondeados del botón.
                 }
-               
-                .padding()
+                
+                // Botón de inicio de sesión con Apple
+                Button(action: {
+                    performAppleSignIn() // Iniciar proceso de registro con Apple
+                }) {
+                    Image(systemName: "applelogo") // Agregar el sistema de símbolos de Apple
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 40, height: 40) // Modificado el tamaño del logo
+                        .padding(8) // Añadido relleno alrededor del logo
+                        .background(Color.white) // Color de fondo del botón.
+                        .cornerRadius(8) // Bordes redondeados del botón.
+                }
             }
+            .padding()
+
 
             Button(action: {
                 authenticateWithBiometrics() // Iniciar sesión con Face ID
