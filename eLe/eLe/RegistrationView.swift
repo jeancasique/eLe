@@ -21,6 +21,7 @@ struct RegistrationView: View {
     @State private var alertMessage = ""
     @State private var showAlert = false
     @State private var shouldNavigateToLogin = false
+    @State private var showTermsSheet = false
 
     var body: some View {
         NavigationStack {
@@ -112,6 +113,30 @@ struct RegistrationView: View {
                 .foregroundColor(.white)
                 .background(allFieldsFilled ? Color.blue : Color.gray)
                 .cornerRadius(8)
+                
+                HStack(spacing: 0) {
+                    Text("Al darle al botón crear usuario aceptas nuestros ")
+                        .foregroundColor(.primary)
+                        .font(.footnote) // Tamaño de fuente más pequeño
+
+                    Button("Términos y Condiciones") {
+                        // Mostrar la hoja de términos y condiciones al hacer clic
+                        showTermsSheet.toggle()
+                    }
+                    .foregroundColor(.blue)
+                    .font(.footnote) // Tamaño de fuente más pequeño
+                    .sheet(isPresented: $showTermsSheet) {
+                        // Hoja para mostrar los términos y condiciones
+                        TerminosView()
+                    }
+
+                    Text(" y nuestra política de privacidad.")
+                        .foregroundColor(.primary)
+                        .font(.footnote) // Tamaño de fuente más pequeño
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16) // Ajuste horizontal
+                
             }
             .navigationTitle("Registro")
                        .alert(isPresented: $showAlert) {
