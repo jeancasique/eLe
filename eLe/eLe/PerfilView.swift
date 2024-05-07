@@ -29,65 +29,69 @@ struct PerfilView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .center, spacing: 20) {
-                    // Muestra el primer nombre del usuario, con estilo de título y negrita
-                    Text(userData.firstName)
-                        .font(.title) // Establece el tamaño de la fuente como título
-                        .fontWeight(.bold) // Hace que la fuente sea negrita
-                        .padding(.top, 10) // Añade un espacio superior de 10 puntos
-                      
-                    // Llama a la sección que muestra y maneja la imagen de perfil
-                    profileImageSection
-                    
-                    // Contenedor horizontal para el correo electrónico
-                    HStack {
-                        Text("Email:")
+                ZStack {
+                    Color.melonColor
+                        .edgesIgnoringSafeArea(.all)
+                        .frame(height: UIScreen.main.bounds.height / 2)
+                    VStack(alignment: .center, spacing: 20) {
+                        // Muestra el primer nombre del usuario, con estilo de título y negrita
+                        Text(userData.firstName)
+                            .font(.title) // Establece el tamaño de la fuente como título
+                            .fontWeight(.bold) // Hace que la fuente sea negrita
+                            .padding(.top, 10) // Añade un espacio superior de 10 puntos
                         
-                            .padding(.vertical, 8) // Añade padding vertical para el alineamiento con otros elementos
-                            .font(.body) // Establece el tamaño de la fuente como cuerpo de texto
-                            .foregroundColor(.primary) // Establece el color del texto al color primario
-
-                        Spacer(minLength: 8) // Inserta un espacio mínimo de 8 dp entre el label y el contenido
-
-                        Text(userData.email)
-                            .frame(maxWidth: .infinity, alignment: .leading) // Asegura que el texto se alinee a la izquierda y ocupe el espacio disponible
-                            .font(.body) // Establece el tamaño de la fuente como cuerpo de texto
-                            .foregroundColor(.primary) // Establece el color del texto al color primario
-                            .padding(.trailing, 8) // Añade padding al final del texto para mantener el diseño dentro de los límites
-                    }
-                    .padding(.vertical, 8) // Añade relleno vertical al contenedor HStack
-                    
-                    userInfoField(label: "Nombre:", value: $userData.firstName, editing: $editingField, fieldKey: "firstName", editable: true)
-                    userInfoField(label: "Apellidos:", value: $userData.lastName, editing: $editingField, fieldKey: "lastName", editable: true)
-                    datePickerField(label: "Fecha de Nacimiento:", date: $userData.birthDate, editing: $editingField, fieldKey: "birthDate")
-                    userInfoField(label: "Género:", value: $userData.gender, editing: $editingField, fieldKey: "gender", editable: true)
-                    
-                    // Botón para guardar los cambios realizados en el perfil del usuario
-                    Button("Guardar Cambios", action: saveData) // Define el botón y su acción
-                        .padding() // Añade relleno alrededor del botón
-                        .foregroundColor(.white) // Establece el color del texto a blanco
-                        .background(Color.blue) // Establece el color de fondo a azul
-                        .cornerRadius(10) // Redondea las esquinas del botón
-                    
-                    Spacer() // Inserta un espacio flexible que empuja el contenido hacia arriba
-                }
-                .padding() // Añade relleno alrededor del VStack
-            }
-            .onAppear(perform: loadUserData) // Carga los datos del usuario al aparecer la vista
-            .sheet(isPresented: $showImagePicker) {
-                ImagePicker(image: $userData.profileImage)
-            }
-
-                        .alert(isPresented: $showAlert) { // Muestra una alerta cuando se guarda la información
-                            Alert(
-                                title: Text("Datos Guardados"),
-                                message: Text(alertMessage),
-                                dismissButton: .default(Text("OK"))
-                            )
+                        // Llama a la sección que muestra y maneja la imagen de perfil
+                        profileImageSection
+                            .padding(.top, 20)
+                        // Contenedor horizontal para el correo electrónico
+                        HStack {
+                            Text("Email:")
+                            
+                                .padding(.vertical, 8) // Añade padding vertical para el alineamiento con otros elementos
+                                .font(.body) // Establece el tamaño de la fuente como cuerpo de texto
+                                .foregroundColor(.primary) // Establece el color del texto al color primario
+                            
+                            Spacer(minLength: 8) // Inserta un espacio mínimo de 8 dp entre el label y el contenido
+                            
+                            Text(userData.email)
+                                .frame(maxWidth: .infinity, alignment: .leading) // Asegura que el texto se alinee a la izquierda y ocupe el espacio disponible
+                                .font(.body) // Establece el tamaño de la fuente como cuerpo de texto
+                                .foregroundColor(.primary) // Establece el color del texto al color primario
+                                .padding(.trailing, 8) // Añade padding al final del texto para mantener el diseño dentro de los límites
                         }
+                        .padding(.vertical, 8) // Añade relleno vertical al contenedor HStack
+                        
+                        userInfoField(label: "Nombre:", value: $userData.firstName, editing: $editingField, fieldKey: "firstName", editable: true)
+                        userInfoField(label: "Apellidos:", value: $userData.lastName, editing: $editingField, fieldKey: "lastName", editable: true)
+                        datePickerField(label: "Fecha de Nacimiento:", date: $userData.birthDate, editing: $editingField, fieldKey: "birthDate")
+                        userInfoField(label: "Género:", value: $userData.gender, editing: $editingField, fieldKey: "gender", editable: true)
+                        
+                        // Botón para guardar los cambios realizados en el perfil del usuario
+                        Button("Guardar Cambios", action: saveData) // Define el botón y su acción
+                            .padding() // Añade relleno alrededor del botón
+                            .foregroundColor(.white) // Establece el color del texto a blanco
+                            .background(Color.blue) // Establece el color de fondo a azul
+                            .cornerRadius(10) // Redondea las esquinas del botón
+                        
+                        Spacer() // Inserta un espacio flexible que empuja el contenido hacia arriba
                     }
+                    .padding() // Añade relleno alrededor del VStack
+                }
+                .onAppear(perform: loadUserData) // Carga los datos del usuario al aparecer la vista
+                .sheet(isPresented: $showImagePicker) {
+                    ImagePicker(image: $userData.profileImage)
                 }
                 
+                .alert(isPresented: $showAlert) { // Muestra una alerta cuando se guarda la información
+                    Alert(
+                        title: Text("Datos Guardados"),
+                        message: Text(alertMessage),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
+            }
+        }
+    }
     
     // Sección que muestra y gestiona la imagen de perfil
     var profileImageSection: some View {
@@ -433,7 +437,9 @@ struct PerfilView: View {
         }
     }
 }
-
+    extension Color {
+        static let melonColor = Color(red: 250/255, green: 128/255, blue: 114/255) // RGB para color melón
+    }
 struct PerfilView_Previews: PreviewProvider {
     static var previews: some View {
         PerfilView()
