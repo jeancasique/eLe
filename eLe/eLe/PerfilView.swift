@@ -6,6 +6,7 @@ import FirebaseStorage
 import GoogleSignIn
 import LocalAuthentication
 import AuthenticationServices
+
 // Clase para gestionar los datos del usuario utilizando el patrón ObservableObject
 class UserData: ObservableObject {
     @Published var email: String = ""
@@ -49,12 +50,13 @@ struct PerfilView: View {
                         profileImageSection
                             .padding(.top, 20)
                         
+                        
                         // Contenedor horizontal para el correo electrónico
-                        HStack {
-                            Text("Email:")
-                            
+                        VStack(alignment: .leading) {
+                            Text("Email")
                                 .padding(.vertical, 8) // Añade padding vertical para el alineamiento con otros elementos
-                                .font(.body) // Establece el tamaño de la fuente como cuerpo de texto
+                                .font(.body)
+                                .fontWeight(.bold)// Establece el tamaño de la fuente como cuerpo de texto
                                 .foregroundColor(.primary) // Establece el color del texto al color primario
                             
                             Spacer(minLength: 8) // Inserta un espacio mínimo de 8 dp entre el label y el contenido
@@ -66,12 +68,13 @@ struct PerfilView: View {
                                 .padding(.trailing, 8) // Añade padding al final del texto para mantener el diseño dentro de los límites
                         }
                         .padding(.vertical, 8) // Añade relleno vertical al contenedor HStack
-                        
-                        userInfoField(label: "Nombre:", value: $userData.firstName, editing: $editingField, fieldKey: "firstName", editable: true)
-                        userInfoField(label: "Apellidos:", value: $userData.lastName, editing: $editingField, fieldKey: "lastName", editable: true)
-                        datePickerField(label: "Fecha de Nacimiento:", date: $userData.birthDate, editing: $editingField, fieldKey: "birthDate")
-                        userInfoField(label: "Género:", value: $userData.gender, editing: $editingField, fieldKey: "gender", editable: true)
-                        
+                        VStack(alignment: .leading) {
+                            userInfoField(label: "Nombre", value: $userData.firstName, editing: $editingField, fieldKey: "firstName", editable: true)
+                            userInfoField(label: "Apellidos", value: $userData.lastName, editing: $editingField, fieldKey: "lastName", editable: true)
+                            datePickerField(label: "Fecha de Nacimiento:", date: $userData.birthDate, editing: $editingField, fieldKey: "birthDate")
+                            userInfoField(label: "Género", value: $userData.gender, editing: $editingField, fieldKey: "gender", editable: true)
+                            
+                        }
                         // Botón para guardar los cambios realizados en el perfil del usuario
                         Button("Guardar Cambios", action: saveData) // Define el botón y su acción
                             .padding() // Añade relleno alrededor del botón
@@ -149,29 +152,35 @@ struct PerfilView: View {
         }
         
     }
-    
-    
+
     // Función para generar campos de usuario editables
     func userInfoField(label: String, value: Binding<String>, editing: Binding<String?>, fieldKey: String, editable: Bool) -> some View {
-        HStack {
+        VStack(alignment: .leading) {
             Text(label)
-         
-            if editing.wrappedValue == fieldKey {
-                TextField("", text: value) // Usando el texto vacío para el placeholder
-                
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                Button(action: { editing.wrappedValue = nil }) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                }
-            } else {
-                Text(value.wrappedValue)
-                    .frame(maxWidth: .infinity, alignment: .leading) // Asegura que el texto se alinee a la izquierda
-                if editable {
-                    Button(action: { editing.wrappedValue = fieldKey }) {
-                        Image(systemName: "pencil.circle.fill")
-                            .foregroundColor(.blue)
+                .fontWeight(.bold)
+
+            HStack {
+                if editing.wrappedValue == fieldKey {
+                    TextField("", text: value) // Usando el texto vacío para el placeholder
+                        
+                        .background(.blue)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .cornerRadius(5)
+                    
+                    Button(action: { editing.wrappedValue = nil }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                    }
+                } else {
+                    Text(value.wrappedValue)
+                        .frame(maxWidth: .infinity, alignment: .leading) // Asegura que el texto se alinee a la izquierda
+
+                    if editable {
+                        Button(action: { editing.wrappedValue = fieldKey }) {
+                            Image(systemName: "pencil.circle.fill")
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(BorderlessButtonStyle())
                     }
                 }
             }
@@ -181,8 +190,10 @@ struct PerfilView: View {
 
            // Función para generar un selector de fechas con consistencia en el diseño
     func datePickerField(label: String, date: Binding<Date>, editing: Binding<String?>, fieldKey: String) -> some View {
+        
             HStack {
                 Text(label)
+                    .fontWeight(.bold)
                 
                 if editing.wrappedValue == fieldKey {
                     DatePicker("", selection: date, displayedComponents: [.date])
