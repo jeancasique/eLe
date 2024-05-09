@@ -21,23 +21,25 @@ class UserData: ObservableObject {
 struct PerfilView: View {
     @StateObject private var userData = UserData() // Datos del usuario como objeto de estado
     @State private var editingField: String?       // Campo actualmente en edición
-    @State private var showImagePicker = false     // Controla la visibilidad del selector de imagen
+    @State private var showActionSheet = false     // Controla la visibilidad del selector de imagen
+    @State private var showImagePicker = false
     @State private var showAlert = false           // Controla la visibilidad de la alerta
     @State private var alertMessage = ""           // Mensaje para la alerta
     @State private var sourceType: UIImagePickerController.SourceType?
+    @State private var showDocumentPicker = false
     
     var body: some View {
         NavigationView {
             ScrollView {
                 ZStack (alignment: .top) {
-                  
+                    
                     Rectangle()
-                                            .fill(Color.blue)
-                                                .frame(height: UIScreen.main.bounds.height * 0.2) // Ajusta este valor para controlar la altura del color melón
-                                                .edgesIgnoringSafeArea(.top) // Solo extiende el color melón hasta el área segura superior
-
+                        .fill(Color.blue)
+                        .frame(height: UIScreen.main.bounds.height * 0.2) // Ajusta este valor para controlar la altura del color
+                        .edgesIgnoringSafeArea(.top) // Solo extiende el color melón hasta el área segura superior
+                    
                     VStack(alignment: .center, spacing: 20) {
-                        // Muestra el primer nombre del usuario, con estilo de título y negrita
+                        
                         Text(userData.firstName)
                             .font(.title) // Establece el tamaño de la fuente como título
                             .fontWeight(.bold) // Hace que la fuente sea negrita
@@ -46,6 +48,7 @@ struct PerfilView: View {
                         // Llama a la sección que muestra y maneja la imagen de perfil
                         profileImageSection
                             .padding(.top, 20)
+                        
                         // Contenedor horizontal para el correo electrónico
                         HStack {
                             Text("Email:")
@@ -98,49 +101,54 @@ struct PerfilView: View {
     
     // Sección que muestra y gestiona la imagen de perfil
     var profileImageSection: some View {
-           ZStack {
-               Circle()
-                   .fill(Color.gray.opacity(0.5))
-                   .frame(width: 140, height: 140)
-                   .shadow(radius: 10)
-               
-               if let image = userData.profileImage {
-                   Image(uiImage: image)
-                       .resizable()
-                       .scaledToFill()
-                       .clipShape(Circle())
-                       .frame(width: 130, height: 130)
-               } else {
-                   Image(systemName: "person.circle.fill")
-                       .resizable()
-                       .scaledToFit()
-                       .frame(width: 130, height: 130)
-                       .clipShape(Circle())
-                       .foregroundColor(.white)
-               }
-           }
-           .onTapGesture {
-               self.showImagePicker = true // Activa el selector de imágenes al tocar
-               self.sourceType = nil // Resetea la fuente de la imagen
-           }
-           .contextMenu {
-               Button(action: {
-                   self.showImagePicker = true
-                   self.sourceType = .photoLibrary
-               }) {
-                   Text("Abrir Galería")
-                   Image(systemName: "photo.on.rectangle")
-               }
-               Button(action: {
-                   self.showImagePicker = true
-                   self.sourceType = .camera
-               }) {
-                   Text("Tomar Foto")
-                   Image(systemName: "camera")
-               }
-           }
-           .padding(.bottom, 20)
-       }
+        ZStack {
+            Circle()
+                .fill(Color.gray.opacity(0.5))
+                .frame(width: 140, height: 140)
+                .shadow(radius: 10)
+            
+            if let image = userData.profileImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .clipShape(Circle())
+                    .frame(width: 130, height: 130)
+            } else {
+                Image(systemName: "person.circle.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 130, height: 130)
+                    .clipShape(Circle())
+                    .foregroundColor(.white)
+            }
+        }
+        .onTapGesture {
+            self.showActionSheet = true
+        }
+        .actionSheet(isPresented: $showActionSheet) {
+            ActionSheet(title: Text("Selecciona una opción"), buttons: [
+                .default(Text("Abrir Galería")) {
+                    self.showImagePicker = true
+                    self.sourceType = .photoLibrary
+                },
+                .default(Text("Tomar Foto")) {
+                    self.showImagePicker = true
+                    self.sourceType = .camera
+                },
+                .default(Text("Seleccionar Archivo")) {
+                    self.showDocumentPicker = true
+                },
+                .cancel()
+            ])
+        }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(image: $userData.profileImage, sourceType: sourceType!)
+        }
+        .sheet(isPresented: $showDocumentPicker) {
+            DocumentPicker(image: $userData.profileImage)
+        }
+        
+    }
     
     
     // Función para generar campos de usuario editables
