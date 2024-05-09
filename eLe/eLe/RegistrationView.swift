@@ -114,30 +114,31 @@ struct RegistrationView: View {
                 .background(allFieldsFilled ? Color.blue : Color.gray)
                 .cornerRadius(8)
                 
-                HStack(spacing: 0) {
+                VStack(alignment: .leading) {
                     Text("Al darle al botón crear usuario aceptas nuestros ")
                         .foregroundColor(.primary)
-                        .font(.footnote) // Tamaño de fuente más pequeño
+                        .font(.system(size: 11)) // Cambia el tamaño de la fuente aquí
+                        .lineLimit(1)
 
-                    Button("Términos y Condiciones") {
-                        // Mostrar la hoja de términos y condiciones al hacer clic
-                        showTermsSheet.toggle()
+                    HStack {
+                        Button("Términos y Condiciones") {
+                            showTermsSheet.toggle()
+                        }
+                        .foregroundColor(.blue)
+                        .font(.system(size: 12)) // Cambia el tamaño de la fuente para el botón
+                        .lineLimit(1)
+                        .sheet(isPresented: $showTermsSheet) {
+                            TerminosView()
+                        }
+                        
+                        Text("y nuestra política de privacidad.")
+                            .foregroundColor(.primary)
+                            .font(.system(size: 11)) // Cambia el tamaño de la fuente aquí también
+                            .lineLimit(1)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    .foregroundColor(.blue)
-                    .font(.footnote) // Tamaño de fuente más pequeño
-                    .sheet(isPresented: $showTermsSheet) {
-                        // Hoja para mostrar los términos y condiciones
-                        TerminosView()
-                    }
-
-                    Text(" y nuestra política de privacidad.")
-                        .foregroundColor(.primary)
-                        .font(.footnote) // Tamaño de fuente más pequeño
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16) // Ajuste horizontal
-                
-            }
+                }
             .navigationTitle("Registro")
                        .alert(isPresented: $showAlert) {
                            Alert(

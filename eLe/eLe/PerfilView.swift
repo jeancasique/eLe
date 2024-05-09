@@ -29,10 +29,13 @@ struct PerfilView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                ZStack {
-                    Color.melonColor
-                        .edgesIgnoringSafeArea(.all)
-                        .frame(height: UIScreen.main.bounds.height / 2)
+                ZStack (alignment: .top) {
+                  
+                    Rectangle()
+                                            .fill(Color.blue)
+                                                .frame(height: UIScreen.main.bounds.height * 0.2) // Ajusta este valor para controlar la altura del color melón
+                                                .edgesIgnoringSafeArea(.top) // Solo extiende el color melón hasta el área segura superior
+
                     VStack(alignment: .center, spacing: 20) {
                         // Muestra el primer nombre del usuario, con estilo de título y negrita
                         Text(userData.firstName)
@@ -437,9 +440,7 @@ struct PerfilView: View {
         }
     }
 }
-    extension Color {
-        static let melonColor = Color(red: 250/255, green: 128/255, blue: 114/255) // RGB para color melón
-    }
+ 
 struct PerfilView_Previews: PreviewProvider {
     static var previews: some View {
         PerfilView()
