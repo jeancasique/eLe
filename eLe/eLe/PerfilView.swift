@@ -229,7 +229,6 @@ struct PerfilView: View {
             "gender": self.userData.gender,
             "profileImageURL": self.userData.profileImageURL
             
-            // Actualiza la URL de la imagen de perfil
         ]
         
         // Guarda los datos del usuario en Firestore
